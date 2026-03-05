@@ -1,111 +1,59 @@
 import streamlit as st
+st.set_page_config(page_title="Calculator", page_icon="🔢")
+st.title("CALCULATOR")
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Calculator", layout="wide")
+# 1. Create the calculator's "memory" so it doesn't forget the numbers
+if "math_equation" not in st.session_state:
+    st.session_state.math_equation = ""
 
-# ---------------- TITLE ----------------
-st.markdown("""
-<h1 style='
-text-align:center;
-font-size:65px;
-color:#00ffcc;
-font-weight:bold;
-text-shadow: 2px 2px 10px #00ffcc;'>
-DI Calculator 🧮
-</h1>
-""", unsafe_allow_html=True)
+# 2. Create simple functions to handle the button clicks
+def add_to_calc(value):
+    # This adds the clicked number/symbol to our memory string
+    st.session_state.math_equation += str(value)
 
-# ---------------- CUSTOM CSS ----------------
-st.markdown("""
-<style>
-    .stButton > button {
-        width: 100%;
-        height: 60px;
-        font-size: 1.2rem;
-        border-radius: 8px;
-        background-color: #262730;
-        color: white;
-        border: 1px solid #464646;
-    }
-    .stButton > button:hover {
-        border: 1px solid #00ffcc;
-        color: #00ffcc;
-    }
-    .main-display {
-        font-size: 3rem;
-        text-align: right;
-        padding: 20px;
-        background: #0e1117;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        border: 1px solid #333;
-        color: #00ffcc;
-        font-family: 'Courier New', monospace;
-    }
-</style>
-""", unsafe_allow_html=True)
+def calculate_result():
+    try:
+        # 'eval' is a built-in Python tool that automatically calculates a math string (like "7+5")
+        result = eval(st.session_state.math_equation)
+        st.session_state.math_equation = str(result)
+    except:
+        st.session_state.math_equation = "Error"
 
-# ---------------- SESSION STATE ----------------
-if 'expression' not in st.session_state:
-    st.session_state.expression = ""
+def clear_calc():
+    # This empties the memory
+    st.session_state.math_equation = ""
 
-if 'history' not in st.session_state:
-    st.session_state.history = []
+# 3. The Calculator Screen (Using st.info for a nice blue box)
+st.text_input(label="Calculator Display",
+    label_visibility="collapsed",
+    value=st.session_state.math_equation,
+    key="math_equation",
+    on_change=calculate_result,
+    placeholder="0")
 
-# ---------------- CALC FUNCTION ----------------
-def process_calc(key):
-    expr = st.session_state.expression
+# 4. The Buttons Grid (Using 4 columns to put buttons side-by-side)
+col1, col2, col3, col4 = st.columns(4)
 
-    if key == "C":
-        st.session_state.expression = ""
+with col1:         
+    st.button("𝟳", on_click=add_to_calc, args=("7",))
+    st.button("𝟰", on_click=add_to_calc, args=("4",))
+    st.button("𝟭", on_click=add_to_calc, args=("1",))
+    st.button("𝗖", on_click=clear_calc)
 
-    elif key == "⌫":
-        st.session_state.expression = expr[:-1]
+with col2:
+    st.button("𝟴", on_click=add_to_calc, args=("8",))
+    st.button("𝟱", on_click=add_to_calc, args=("5",))
+    st.button("𝟮", on_click=add_to_calc, args=("2",))
+    st.button("𝟬 ", on_click=add_to_calc, args=("0",))
 
-    elif key == "=":
-        try:
-            result = eval(expr)
-            result = round(result, 8) if isinstance(result, float) else result
-            st.session_state.history.insert(0, f"{expr} = {result}")
-            st.session_state.expression = str(result)
-        except:
-            st.session_state.expression = "Error"
+with col3:
+    st.button("𝟵", on_click=add_to_calc, args=("9",))
+    st.button("𝟲", on_click=add_to_calc, args=("6",))
+    st.button("𝟯", on_click=add_to_calc, args=("3",))
+    st.button("＝", on_click=calculate_result)
 
-    else:
-        operators = "+-*/"
-        if expr and key in operators and expr[-1] in operators:
-            st.session_state.expression = expr[:-1] + key
-        else:
-            st.session_state.expression += str(key)
-
-# ---------------- LAYOUT ----------------
-col1, col2 = st.columns([3, 1])
-
-with col1:
-    display_text = st.session_state.expression if st.session_state.expression else "0"
-    st.markdown(f'<div class="main-display">{display_text}</div>', unsafe_allow_html=True)
-
-    grid = [
-        ["7", "8", "9", "Div /"],
-        ["4", "5", "6", "Mul *"],
-        ["1", "2", "3", "Sub -"],
-        ["C", "0", ".", "Add +"],
-        ["⌫", "="]
-    ]
-
-    for row in grid:
-        cols = st.columns(len(row))
-        for i, label in enumerate(row):
-            if cols[i].button(label, key=f"{label}_{grid.index(row)}"):
-                process_calc(label)
-                st.rerun()
-
-
-
-# ---------------- KEYBOARD INPUT ----------------
-with st.expander("⌨️ Keyboard Input"):
-    manual_input = st.text_input("Type expression (e.g. 5*5+2)")
-    if st.button("Calculate Typed"):
-        st.session_state.expression = manual_input
-        process_calc("=")
-        st.rerun()
+with col4:
+    st.button("➗", on_click=add_to_calc, args=("/",))
+    st.button("✖️", on_click=add_to_calc, args=("*",))
+    st.button("➖", on_click=add_to_calc, args=("-",))
+    st.button("➕", on_click=add_to_calc, args=("+",))
